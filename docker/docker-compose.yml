@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.9"  # Có thể bỏ nếu dùng phiên bản Docker Compose mới
 
 services:
   # Database cho Mindmap
@@ -13,19 +13,36 @@ services:
       - "3307:3306"
     volumes:
       - mindmap-data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d  # Đảm bảo thư mục init nằm trong docker/
+    command: --default-authentication-plugin=mysql_native_password
 
-  # Keycloak (dùng cho login với Google)
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0.2
-    container_name: keycloak
-    command: start-dev
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+  # Backend (Spring Boot)
+  mindmap-backend:
+    build:
+      context: ../backend  # Thay ./backend bằng ../backend để trỏ lên thư mục cha
+      dockerfile: Dockerfile
+    container_name: mindmap-backend
+    restart: always
     ports:
-      - "8180:8080"
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mindmap-mysql:3306/mindmap_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
     depends_on:
       - mindmap-mysql
+
+  # Frontend (React/Vite)
+  mindmap-frontend:
+    build:
+      context: ../frontend  # Thay ./frontend bằng ../frontend để trỏ lên thư mục cha
+      dockerfile: Dockerfile
+    container_name: mindmap-frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - mindmap-backend
 
 volumes:
   mindmap-data:
