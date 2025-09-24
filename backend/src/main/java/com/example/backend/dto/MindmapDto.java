@@ -37,4 +37,17 @@ public class MindmapDto {
         // Thêm updatedAt nếu muốn phản hồi thời gian cập nhật
         // public Instant updatedAt;
     }
+
+    // Added missing response DTOs
+    public static class CreateResponse {
+        public Long id;
+        public String name;
+        public Long rootNodeId;
+    }
+
+    public static class UpdateResponse {
+        public Long id;
+        public String name;
+        public Instant updatedAt;
+    }
 }
